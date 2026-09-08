@@ -1,0 +1,266 @@
+[
+  {
+    "llr_id": "LLR-ACT-0001",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [],
+    "statement": "The software shall validate that the `channel` parameter is within the range of `0` to `ACT_MAX_CHANNELS - 1`.",
+    "post_conditions": [
+      "If `channel` is outside the valid range, the function shall terminate and return `ACT_ERR_INVALID_PARAM`."
+    ],
+    "boundary_definitions": {
+      "channel": "0 to 3"
+    },
+    "derived_requirement": true,
+    "rationale": "HLR-ACT-001 specifies \"selected servo channels\". For DAL A, explicit input parameter validation is essential to prevent unintended hardware access or undefined behavior, ensuring that only valid channels are selected and preventing out-of-bounds array access if `channel` were used as an index."
+  },
+  {
+    "llr_id": "LLR-ACT-0002",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [],
+    "statement": "The software shall validate that the `target_angle_deg` parameter is within the aerodynamic authority range of `ACT_MIN_ANGLE_DEG` to `ACT_MAX_ANGLE_DEG`.",
+    "post_conditions": [
+      "If `target_angle_deg` is outside the valid range, the function shall terminate and return `ACT_ERR_INVALID_PARAM`."
+    ],
+    "boundary_definitions": {
+      "target_angle_deg": "-45.0 to +45.0 deg"
+    },
+    "derived_requirement": true,
+    "rationale": "HLR-ACT-001 specifies commanding actuator position \"within the valid aerodynamic authority range of -45.0 to +45.0 degrees\". For DAL A, explicit input validation is required to strictly enforce this range at the function entry point, preventing the command of out-of-spec or unsafe positions."
+  },
+  {
+    "llr_id": "LLR-ACT-0003",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "Input parameters `channel` and `target_angle_deg` are valid."
+    ],
+    "statement": "The software shall poll the `ACT_STATUS_REG` for the `ACT_READY_BIT` to be set, indicating the actuator hardware is ready to accept a new position command. This polling shall be bounded by a defined timeout mechanism.",
+    "post_conditions": [
+      "If the `ACT_READY_BIT` becomes set within the timeout period, execution shall proceed to command the position.",
+      "If the timeout period expires before the `ACT_READY_BIT` becomes set, the function shall terminate and return `ACT_ERR_TIMEOUT`."
+    ],
+    "boundary_definitions": {
+      "polling_timeout_us": "TBD (must be a specific value <= 500 us based on HLR 'hardware latency limits')"
+    },
+    "derived_requirement": true,
+    "rationale": "HLR-ACT-001 requires operations \"without exceeding hardware latency limits\". An unbounded polling loop, as present in the source, is a critical defect for DAL A as it violates deterministic execution and can lead to indefinite blocking. A timeout mechanism is essential to ensure bounded execution time and predictable behavior, preventing system lock-up or missed deadlines."
+  },
+  {
+    "llr_id": "LLR-ACT-0004",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "Input parameters `channel` and `target_angle_deg` are valid."
+    ],
+    "statement": "During the polling for `ACT_READY_BIT`, the software shall concurrently monitor `ACT_STATUS_REG` for the `ACT_FAULT_BIT`.",
+    "post_conditions": [
+      "If the `ACT_FAULT_BIT` becomes set, the function shall terminate and return `ACT_ERR_HW_FAULT`."
+    ],
+    "boundary_definitions": {},
+    "derived_requirement": true,
+    "rationale": "For DAL A, robust error handling is critical. Detecting and reporting hardware faults through the `ACT_FAULT_BIT` is essential to maintain system integrity, prevent operations with a malfunctioning component, and notify higher-level software of an unsafe condition. This addresses the identified omission in the source code."
+  },
+  {
+    "llr_id": "LLR-ACT-0005",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "The actuator hardware is ready and no fault has been detected.",
+      "`target_angle_deg` is within the valid range."
+    ],
+    "statement": "The software shall convert the `target_angle_deg` (float) to an `int32_t` raw count value by multiplying by `1000.0f` and truncating the fractional part.",
+    "post_conditions": [
+      "`raw_counts` shall contain the integer representation of the scaled target angle, such that `raw_counts = (int32_t)(target_angle_deg * 1000.0f)`."
+    ],
+    "boundary_definitions": {
+      "target_angle_deg": "-45.0 to +45.0 deg",
+      "raw_counts": "-45000 to +45000"
+    },
+    "derived_requirement": false,
+    "rationale": "This directly implements the HLR's requirement to \"command actuator position\" by defining the specific scaling and data type transformation required for hardware interface."
+  },
+  {
+    "llr_id": "LLR-ACT-0006",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "The `raw_counts` value has been calculated and the actuator is ready."
+    ],
+    "statement": "The software shall write the `raw_counts` value, cast to `uint32_t`, to the `ACT_POS_REG` hardware register.",
+    "post_conditions": [
+      "`ACT_POS_REG` shall be updated with the `uint32_t` representation of `raw_counts`."
+    ],
+    "boundary_definitions": {
+      "raw_counts": "-45000 to +45000",
+      "ACT_POS_REG": "0 to 4294967295 (reflecting `uint32_t` two's complement representation of input `raw_counts`)"
+    },
+    "derived_requirement": false,
+    "rationale": "This directly implements the HLR's requirement to \"command actuator position\" by transferring the calculated position value to the hardware."
+  },
+  {
+    "llr_id": "LLR-ACT-0007",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "The position command has been written to `ACT_POS_REG`."
+    ],
+    "statement": "The software shall write a command trigger to the `ACT_CTRL_REG` hardware register by setting the bit corresponding to the `channel` parameter and ORing with the `0x01` activation bit.",
+    "post_conditions": [
+      "`ACT_CTRL_REG` shall be updated with `(1U << channel) | 0x01`."
+    ],
+    "boundary_definitions": {
+      "channel": "0 to 3"
+    },
+    "derived_requirement": false,
+    "rationale": "This directly implements the HLR's requirement to \"command actuator position\" by initiating the hardware action for the specified channel."
+  },
+  {
+    "llr_id": "LLR-ACT-0008",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "All previous operations completed successfully, and no errors or faults were detected."
+    ],
+    "statement": "The function shall return `ACT_OK` upon successful completion of commanding the actuator position without detecting any errors or faults.",
+    "post_conditions": [
+      "Function returns `ACT_OK`."
+    ],
+    "boundary_definitions": {},
+    "derived_requirement": true,
+    "rationale": "For DAL A, all functions must have a well-defined return status to indicate success or failure of its operations. The existing code always returns `ACT_OK`, which is insufficient for comprehensive DAL A error reporting. This LLR complements the error handling introduced by LLR-ACT-0001, LLR-ACT-0002, LLR-ACT-0003, and LLR-ACT-0004, ensuring a complete set of return conditions."
+  },
+  {
+    "llr_id": "LLR-FLT-0001",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_apply_rate_filter",
+    "pre_conditions": [
+      "The 'current_val' parameter shall be a valid finite float.",
+      "The 'target_val' parameter shall be a valid finite float.",
+      "The 'max_rate' parameter shall be a valid finite float and greater than or equal to 0.0."
+    ],
+    "statement": "The software shall calculate the difference between 'target_val' and 'current_val'. If the absolute value of this difference is less than or equal to 'max_rate', the software shall return the 'current_val' incremented by this calculated difference.",
+    "post_conditions": [
+      "The returned value shall be mathematically equivalent to 'current_val + (target_val - current_val)'."
+    ],
+    "boundary_definitions": {
+      "current_val": "Any valid finite float",
+      "target_val": "Any valid finite float",
+      "max_rate": ">= 0.0f",
+      "delta": "-(max_rate) <= (target_val - current_val) <= max_rate"
+    },
+    "derived_requirement": true,
+    "rationale": "This LLR defines the core behavior of the rate filter when the desired change is within the specified rate limit. In safety-critical avionics systems, controlling the rate of change of parameters (e.g., actuator positions, control surface deflections) is fundamental for maintaining stability, preventing mechanical overstress, and ensuring smooth, predictable system response. Failure to adhere to specified rate limits could lead to hazardous conditions such as structural damage, system instability, or loss of control authority. This requirement ensures that nominal transitions are executed safely and predictably."
+  },
+  {
+    "llr_id": "LLR-FLT-0002",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_apply_rate_filter",
+    "pre_conditions": [
+      "The 'current_val' parameter shall be a valid finite float.",
+      "The 'target_val' parameter shall be a valid finite float.",
+      "The 'max_rate' parameter shall be a valid finite float and greater than or equal to 0.0."
+    ],
+    "statement": "If the difference between 'target_val' and 'current_val' is positive and exceeds 'max_rate', the software shall limit this difference to 'max_rate' and return the 'current_val' incremented by 'max_rate'.",
+    "post_conditions": [
+      "The returned value shall be mathematically equivalent to 'current_val + max_rate'."
+    ],
+    "boundary_definitions": {
+      "current_val": "Any valid finite float",
+      "target_val": "Any valid finite float",
+      "max_rate": ">= 0.0f",
+      "delta": "(target_val - current_val) > max_rate"
+    },
+    "derived_requirement": true,
+    "rationale": "This LLR addresses the positive rate limiting aspect, which is essential in safety-critical systems to prevent excessively rapid positive changes in controlled parameters. Uncontrolled rapid positive changes can induce high inertial loads, mechanical overstress on components (e.g., actuator linkages, airframe structures), or lead to system instability, all of which are critical safety hazards. This requirement ensures that positive rate transitions occur within safe, predefined limits, protecting the system from detrimental dynamic responses."
+  },
+  {
+    "llr_id": "LLR-FLT-0003",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_apply_rate_filter",
+    "pre_conditions": [
+      "The 'current_val' parameter shall be a valid finite float.",
+      "The 'target_val' parameter shall be a valid finite float.",
+      "The 'max_rate' parameter shall be a valid finite float and greater than or equal to 0.0."
+    ],
+    "statement": "If the difference between 'target_val' and 'current_val' is negative and its absolute value exceeds 'max_rate' (i.e., 'target_val - current_val < -max_rate'), the software shall limit this difference to '-max_rate' and return the 'current_val' decremented by 'max_rate'.",
+    "post_conditions": [
+      "The returned value shall be mathematically equivalent to 'current_val - max_rate'."
+    ],
+    "boundary_definitions": {
+      "current_val": "Any valid finite float",
+      "target_val": "Any valid finite float",
+      "max_rate": ">= 0.0f",
+      "delta": "(target_val - current_val) < -max_rate"
+    },
+    "derived_requirement": true,
+    "rationale": "This LLR addresses the negative rate limiting aspect, which is equally critical for preventing excessively rapid negative changes in controlled parameters. Similar to positive rate limits, uncontrolled rapid negative changes can cause mechanical shock, induce oscillations, lead to premature wear of components, or result in unstable system behavior. In an aerospace context, such events could compromise flight safety or structural integrity. This requirement ensures that negative rate transitions adhere to safe, predefined limits, maintaining system robustness and safety."
+  },
+  {
+    "llr_id": "LLR-ACT-0001",
+    "parent_hlr_ref": "HLR-ACT-002",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [],
+    "statement": "The software shall set the `ACT_CTRL_REG` to `0x00` when the input `mode` is `ACT_MODE_STANDBY`.",
+    "post_conditions": [
+      "ACT_CTRL_REG == 0x00",
+      "Function returns ACT_OK"
+    ],
+    "boundary_definitions": {
+      "mode": "ACT_MODE_STANDBY"
+    },
+    "derived_requirement": false,
+    "rationale": "Directly implements the command for the actuator to enter the STANDBY state as required by HLR-ACT-002."
+  },
+  {
+    "llr_id": "LLR-ACT-0002",
+    "parent_hlr_ref": "HLR-ACT-002",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [],
+    "statement": "The software shall set the `ACT_CTRL_REG` to `0x01` when the input `mode` is `ACT_MODE_ACTIVE`.",
+    "post_conditions": [
+      "ACT_CTRL_REG == 0x01",
+      "Function returns ACT_OK"
+    ],
+    "boundary_definitions": {
+      "mode": "ACT_MODE_ACTIVE"
+    },
+    "derived_requirement": false,
+    "rationale": "Directly implements the command for the actuator to enter the ACTIVE state as required by HLR-ACT-002."
+  },
+  {
+    "llr_id": "LLR-ACT-0003",
+    "parent_hlr_ref": "HLR-ACT-002",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [],
+    "statement": "The software shall set the `ACT_CTRL_REG` to `0x04` when the input `mode` is `ACT_MODE_CALIBRATE`.",
+    "post_conditions": [
+      "ACT_CTRL_REG == 0x04",
+      "Function returns ACT_OK"
+    ],
+    "boundary_definitions": {
+      "mode": "ACT_MODE_CALIBRATE"
+    },
+    "derived_requirement": false,
+    "rationale": "Directly implements the command for the actuator to enter the CALIBRATE state as required by HLR-ACT-002."
+  },
+  {
+    "llr_id": "LLR-ACT-0004",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [
+      "ACT_CTRL_REG initialized to ACT_CTRL_REG_pre_call"
+    ],
+    "statement": "The software shall return `ACT_OK` and preserve the current value of `ACT_CTRL_REG` if the input `mode` is any value other than `ACT_MODE_STANDBY`, `ACT_MODE_ACTIVE`, or `ACT_MODE_CALIBRATE`.",
+    "post_conditions": [
+      "ACT_CTRL_REG == ACT_CTRL_REG_pre_call",
+      "Function returns ACT_OK"
+    ],
+    "boundary_definitions": {
+      "mode": "any value not explicitly defined as ACT_MODE_STANDBY, ACT_MODE_ACTIVE, or ACT_MODE_CALIBRATE"
+    },
+    "derived_requirement": true,
+    "rationale": "This requirement describes the implicit behavior of the current code when an undefined `act_mode_t` value is provided, due to the missing `default` clause in the switch statement. For DAL A, all input permutations must be explicitly handled. The current implementation silently fails to change the mode while indicating success. This is a safety concern as the actuator may remain in an unexpected operational state, leading to incorrect system behavior or potential hazards if the calling function assumes the mode transition was successful. A more robust implementation for DAL A would typically log an error, return `ACT_ERR_INVALID_PARAM`, or force a safe mode (e.g., STANDBY) for undefined inputs, rather than silently maintaining the previous state."
+  }
+]

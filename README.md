@@ -137,29 +137,29 @@ The `acv` command-line interface provides three primary subcommands:
 Audits prototype C source code against hardware register definitions and DO-178C Table A-5 guidelines:
 ```bash
 acv audit \
-  --code examples/flight_controller/actuator_control.c \
-  --icd examples/flight_controller/icd.json \
-  --out GAP_REPORT.md
+  --code examples/flight_controller/inputs/actuator_control.c \
+  --icd examples/flight_controller/inputs/icd.json \
+  --out examples/flight_controller/outputs/audit/GAP_REPORT.md
 ```
 
 ### 2. Synthesize Candidate LLRs
 Extracts formal candidate LLRs matching prototype C functions with allocated HLRs:
 ```bash
 acv synthesize-llr \
-  --code examples/flight_controller/actuator_control.c \
-  --header examples/flight_controller/actuator_control.h \
-  --hlr examples/flight_controller/hlr.json \
+  --code examples/flight_controller/inputs/actuator_control.c \
+  --header examples/flight_controller/inputs/actuator_control.h \
+  --hlr examples/flight_controller/inputs/hlr.json \
   --prefix ACT \
-  --out candidates.json
+  --out examples/flight_controller/outputs/llr_synthesis/candidates.json
 ```
 
 ### 3. Generate Requirements-Based Tests
 Derives black-box test vectors and Unity C test harness stubs from human-baselined LLRs:
 ```bash
 acv generate-tests \
-  --llr examples/flight_controller/approved_llr.json \
-  --out test_stubs.c \
-  --vectors test_vectors.json \
+  --llr examples/flight_controller/inputs/approved_llr.json \
+  --out examples/flight_controller/outputs/test_scaffolding/test_stubs.c \
+  --vectors examples/flight_controller/outputs/test_scaffolding/test_vectors.json \
   --target-header actuator_control.h \
   --prefix ACT
 ```
@@ -212,11 +212,20 @@ certifAI/
 │       └── unity_c_test_stub.j2       # Jinja2 template for Unity C test harnesses
 ├── examples/
 │   └── flight_controller/             # Realistic flight surface control case study
-│       ├── actuator_control.c         # C prototype with intentional omissions
-│       ├── actuator_control.h         # C header definitions
-│       ├── hlr.json                   # Allocated HLRs
-│       ├── icd.json                   # Hardware register & bus ICD
-│       └── approved_llr.json          # Baselined LLRs for test generation
+│       ├── inputs/                    # Input specifications & prototype code
+│       │   ├── actuator_control.c     # Target C prototype with intentional omissions
+│       │   ├── actuator_control.h     # C header definitions
+│       │   ├── hlr.json               # Allocated High-Level Requirements
+│       │   ├── icd.json               # Hardware register & bus ICD
+│       │   └── approved_llr.json      # Baselined LLRs for test scaffolding
+│       └── outputs/                   # Ordered ACV-SE synthesis & audit outputs
+│           ├── audit/
+│           │   └── GAP_REPORT.md      # DO-178C Table A-5 defensive gap audit report
+│           ├── llr_synthesis/
+│           │   └── candidates.json    # Candidate LLRs conforming to schema
+│           └── test_scaffolding/
+│               ├── test_vectors.json  # DO-178C test vector specifications
+│               └── test_stubs.c       # Executable Unity C test harness stubs
 └── tests/                             # 20 automated unit and integration tests
     ├── test_schemas.py
     ├── test_parsers.py

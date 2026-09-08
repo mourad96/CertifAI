@@ -11,7 +11,7 @@ from acv_engine.schemas.validator import validate_llr, validate_test_vectors
 
 class TestCLI(unittest.TestCase):
     def setUp(self):
-        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller"
+        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller" / "inputs"
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_path = Path(self.temp_dir.name)
 

@@ -9,7 +9,7 @@ from acv_engine.schemas.validator import validate_test_vectors
 
 class TestTestSynthesizer(unittest.TestCase):
     def setUp(self):
-        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller"
+        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller" / "inputs"
         self.llr_file = self.examples_dir / "approved_llr.json"
         self.synthesizer = TestSynthesizer()
 

@@ -10,7 +10,7 @@ from acv_engine.parsers.icd_parser import ICDParser
 
 class TestParsers(unittest.TestCase):
     def setUp(self):
-        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller"
+        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller" / "inputs"
 
     def test_c_ast_parser_functions(self):
         c_file = self.examples_dir / "actuator_control.c"

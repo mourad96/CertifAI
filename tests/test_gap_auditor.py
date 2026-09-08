@@ -9,7 +9,7 @@ from acv_engine.parsers.icd_parser import ICDParser
 
 class TestGapAuditor(unittest.TestCase):
     def setUp(self):
-        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller"
+        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller" / "inputs"
         self.icd = ICDParser.parse_file(self.examples_dir / "icd.json")
         self.auditor = GapAuditor(icd=self.icd)
 

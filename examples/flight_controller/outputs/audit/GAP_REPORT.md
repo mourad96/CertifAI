@@ -1,6 +1,6 @@
 # DO-178C DAL A Prototype Gap & Defensive Audit Report
 **Target System:** `FlightSurface_Actuator_Controller` (ARM_Cortex_M4)
-**Audited Code:** `examples\flight_controller\actuator_control.c`
+**Audited Code:** `examples\flight_controller\inputs\actuator_control.c`
 **Default Hardware Timeout:** `500.0 µs`
 
 ## Executive Summary
@@ -19,7 +19,7 @@
 
 ### `GAP-0001`: UNBOUNDED_HARDWARE_POLL [⛔ CRITICAL]
 - **Function:** `actuator_set_position`
-- **Location:** `examples\flight_controller\actuator_control.c:19`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:19`
 - **DO-178C Objective:** Table A-5 Obj 3 (Verifiable Code: Absence of Unbounded Execution)
 - **Problem:** Unbounded hardware polling loop detected on condition '(!(ACT_STATUS_REG & ACT_READY_BIT))'. Missing iteration limit or timeout watchdog counter.
 
@@ -37,7 +37,7 @@ while ((!(ACT_STATUS_REG & ACT_READY_BIT))) {
 
 ### `GAP-0002`: UNHANDLED_ERROR_REGISTER [⛔ CRITICAL]
 - **Function:** `actuator_set_position`
-- **Location:** `examples\flight_controller\actuator_control.c:19`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:19`
 - **DO-178C Objective:** Table A-5 Obj 2 (Architecture Compliance: Hardware Fault Handling)
 - **Problem:** Register 'ACT_STATUS_REG' has hardware error bitmask (0x00000002), but function 'actuator_set_position' accesses it without verifying error status flags.
 
@@ -53,7 +53,7 @@ ACT_STATUS_REG & ACT_READY_BIT
 
 ### `GAP-0003`: MISSING_INPUT_RANGE_CHECK [⚠️ HIGH]
 - **Function:** `actuator_set_position`
-- **Location:** `examples\flight_controller\actuator_control.c:15`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:15`
 - **DO-178C Objective:** Table A-5 Obj 1 & 4 (Robustness: Input Range Validation)
 - **Problem:** Function 'actuator_set_position' consumes parameters (uint8_t channel, float target_angle_deg) without defensive pre-condition range assertions or validation before processing.
 
@@ -69,7 +69,7 @@ act_status_t actuator_set_position(uint8_t channel, float target_angle_deg)
 
 ### `GAP-0004`: ARITHMETIC_OVERFLOW_RISK [⚠️ MEDIUM]
 - **Function:** `actuator_set_position`
-- **Location:** `examples\flight_controller\actuator_control.c:26`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:26`
 - **DO-178C Objective:** Table A-5 Obj 3 (Robustness: Arithmetic Anomaly Freedom)
 - **Problem:** Potential integer overflow risk in calculation 'target_angle_deg * 1000.0f'.
 
@@ -85,7 +85,7 @@ target_angle_deg * 1000.0f
 
 ### `GAP-0005`: ARITHMETIC_OVERFLOW_RISK [⚠️ MEDIUM]
 - **Function:** `actuator_set_position`
-- **Location:** `examples\flight_controller\actuator_control.c:30`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:30`
 - **DO-178C Objective:** Table A-5 Obj 3 (Robustness: Arithmetic Anomaly Freedom)
 - **Problem:** Potential integer overflow risk in calculation '1U << channel'.
 
@@ -101,7 +101,7 @@ target_angle_deg * 1000.0f
 
 ### `GAP-0006`: ARITHMETIC_OVERFLOW_RISK [⚠️ MEDIUM]
 - **Function:** `actuator_apply_rate_filter`
-- **Location:** `examples\flight_controller\actuator_control.c:47`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:47`
 - **DO-178C Objective:** Table A-5 Obj 3 (Robustness: Arithmetic Anomaly Freedom)
 - **Problem:** Potential integer overflow risk in calculation 'current_val + delta'.
 
@@ -117,7 +117,7 @@ current_val + delta
 
 ### `GAP-0007`: MISSING_INPUT_RANGE_CHECK [⚠️ HIGH]
 - **Function:** `actuator_switch_mode`
-- **Location:** `examples\flight_controller\actuator_control.c:54`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:54`
 - **DO-178C Objective:** Table A-5 Obj 1 & 4 (Robustness: Input Range Validation)
 - **Problem:** Function 'actuator_switch_mode' consumes parameters (act_mode_t mode) without defensive pre-condition range assertions or validation before processing.
 
@@ -133,7 +133,7 @@ act_status_t actuator_switch_mode(act_mode_t mode)
 
 ### `GAP-0008`: SWITCH_MISSING_DEFAULT [⚠️ MEDIUM]
 - **Function:** `actuator_switch_mode`
-- **Location:** `examples\flight_controller\actuator_control.c:55`
+- **Location:** `examples\flight_controller\inputs\actuator_control.c:55`
 - **DO-178C Objective:** Table A-5 Obj 4 (Coding Standards: Defensive Control Flow)
 - **Problem:** Switch statement in 'actuator_switch_mode' lacks a default handler clause.
 

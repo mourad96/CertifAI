@@ -10,7 +10,7 @@ from acv_engine.schemas.validator import validate_llr
 
 class TestLLRSynthesizer(unittest.TestCase):
     def setUp(self):
-        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller"
+        self.examples_dir = Path(__file__).parent.parent / "examples" / "flight_controller" / "inputs"
         self.hlr_doc = HLRParser.parse_file(self.examples_dir / "hlr.json")
         self.synthesizer = LLRSynthesizer(hlr_doc=self.hlr_doc)
 
