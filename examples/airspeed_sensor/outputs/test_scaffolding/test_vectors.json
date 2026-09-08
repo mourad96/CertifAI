@@ -1,0 +1,218 @@
+[
+  {
+    "test_case_id": "TC-IAS-0001",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "NOMINAL",
+    "description": "Verify successful airspeed read for sensor_id 0 with a nominal airspeed value (50.0 knots), ensuring all pre-conditions are met.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 500,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 50.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0002",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "NOMINAL",
+    "description": "Verify successful airspeed read for sensor_id 1 with a nominal mid-range airspeed value (250.0 knots), ensuring all pre-conditions are met.",
+    "inputs": {
+      "sensor_id": 1,
+      "simulated_AIRSPEED_DATA_REG_counts": 2500,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 250.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0003",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "NOMINAL",
+    "description": "Verify successful airspeed read for sensor_id 0 with a nominal high-range airspeed value (400.0 knots), ensuring all pre-conditions are met.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 4000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 400.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0004",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "BOUNDARY",
+    "description": "Verify airspeed read for sensor_id at its minimum valid value (0), with output airspeed at its minimum specified boundary (0.0 knots).",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 0,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 0.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0005",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "BOUNDARY",
+    "description": "Verify airspeed read for sensor_id at its maximum valid value (1), with output airspeed at its maximum specified boundary (450.0 knots).",
+    "inputs": {
+      "sensor_id": 1,
+      "simulated_AIRSPEED_DATA_REG_counts": 4500,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 450.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0006",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify error handling when sensor_id is less than the minimum valid value (0), i.e., sensor_id = -1.",
+    "inputs": {
+      "sensor_id": -1,
+      "simulated_AIRSPEED_DATA_REG_counts": 1000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_ERR_INVALID_PARAM",
+      "out_knots_value": null
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0007",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify error handling when sensor_id is greater than the maximum valid value (1), i.e., sensor_id = 2.",
+    "inputs": {
+      "sensor_id": 2,
+      "simulated_AIRSPEED_DATA_REG_counts": 1000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_ERR_INVALID_PARAM",
+      "out_knots_value": null
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0008",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify error handling when the 'out_knots' pointer is null, as per pre-condition.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 1000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": false
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_ERR_INVALID_PARAM",
+      "out_knots_value": null
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0009",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify error handling when the transducer ready bit fails to assert within 300 microseconds.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 1000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": false,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_ERR_TIMEOUT",
+      "out_knots_value": null
+    },
+    "fault_injection": "Transducer ready bit fails to assert within 300 microseconds."
+  },
+  {
+    "test_case_id": "TC-IAS-0010",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify error handling when the transducer fault bit is active in AIRSPEED_STATUS_REG.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 1000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": true,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_ERR_SENSOR_FAULT",
+      "out_knots_value": null
+    },
+    "fault_injection": "Transducer fault bit is active in AIRSPEED_STATUS_REG."
+  },
+  {
+    "test_case_id": "TC-IAS-0011",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify that calculated airspeed values below 0.0 knots are clamped to 0.0 knots as per the specified output range.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": -100,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 0.0
+    },
+    "fault_injection": null
+  },
+  {
+    "test_case_id": "TC-IAS-0012",
+    "traces_to_llr": "LLR-IAS-0001",
+    "test_category": "ROBUSTNESS",
+    "description": "Verify that calculated airspeed values above 450.0 knots are clamped to 450.0 knots as per the specified output range.",
+    "inputs": {
+      "sensor_id": 0,
+      "simulated_AIRSPEED_DATA_REG_counts": 5000,
+      "simulated_AIRSPEED_STATUS_REG_ready_bit": true,
+      "simulated_AIRSPEED_STATUS_REG_fault_bit": false,
+      "out_knots_pointer_valid": true
+    },
+    "expected_outputs": {
+      "return_value": "AIRSPEED_OK",
+      "out_knots_value": 450.0
+    },
+    "fault_injection": null
+  }
+]

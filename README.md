@@ -2,7 +2,7 @@
 
 [![DO-178C DAL A Compliant](https://img.shields.io/badge/DO--178C-DAL%20A%20Assisted-blue.svg)](#)
 [![Python 3.11](https://img.shields.io/badge/python-3.11+-brightgreen.svg)](#)
-[![Tests: 20 passed](https://img.shields.io/badge/tests-20%20passed-success.svg)](#)
+[![Tests: 24 passed](https://img.shields.io/badge/tests-24%20passed-success.svg)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-gray.svg)](#)
 
 The **Avionics Contract & Verification Synthesis Engine (ACV-SE)** is a verification-copilot designed to bridge the gap between benchtop exploratory prototype C code (the "spike phase") and formal **DO-178C DAL A** compliance artifacts.
@@ -211,27 +211,43 @@ certifAI/
 │   └── templates/
 │       └── unity_c_test_stub.j2       # Jinja2 template for Unity C test harnesses
 ├── examples/
-│   └── flight_controller/             # Realistic flight surface control case study
-│       ├── inputs/                    # Input specifications & prototype code
-│       │   ├── actuator_control.c     # Target C prototype with intentional omissions
-│       │   ├── actuator_control.h     # C header definitions
-│       │   ├── hlr.json               # Allocated High-Level Requirements
-│       │   ├── icd.json               # Hardware register & bus ICD
-│       │   └── approved_llr.json      # Baselined LLRs for test scaffolding
-│       └── outputs/                   # Ordered ACV-SE synthesis & audit outputs
+│   ├── flight_controller/             # Flight surface control case study
+│   │   ├── inputs/                    # Input specifications & prototype code
+│   │   │   ├── actuator_control.c     # Target C prototype with intentional omissions
+│   │   │   ├── actuator_control.h     # C header definitions
+│   │   │   ├── hlr.json               # Allocated High-Level Requirements
+│   │   │   ├── icd.json               # Hardware register & bus ICD
+│   │   │   └── approved_llr.json      # Baselined LLRs for test scaffolding
+│   │   └── outputs/                   # Ordered ACV-SE synthesis & audit outputs
+│   │       ├── audit/
+│   │       │   └── GAP_REPORT.md      # DO-178C Table A-5 defensive gap audit report
+│   │       ├── llr_synthesis/
+│   │       │   └── candidates.json    # Candidate LLRs conforming to schema
+│   │       └── test_scaffolding/
+│   │           ├── test_vectors.json  # DO-178C test vector specifications
+│   │           └── test_stubs.c       # Executable Unity C test harness stubs
+│   └── airspeed_sensor/               # Pitot-static indicated airspeed (IAS) case study
+│       ├── inputs/                    # Simple sensor inputs
+│       │   ├── airspeed_sensor.c      # Pitot acquisition prototype
+│       │   ├── airspeed_sensor.h      # Sensor interface header
+│       │   ├── hlr.json               # Airspeed HLRs
+│       │   ├── icd.json               # Pitot transducer register ICD
+│       │   └── approved_llr.json      # Approved airspeed LLRs
+│       └── outputs/                   # Structured synthesis outputs
 │           ├── audit/
-│           │   └── GAP_REPORT.md      # DO-178C Table A-5 defensive gap audit report
+│           │   └── GAP_REPORT.md      # Table A-5 audit findings
 │           ├── llr_synthesis/
-│           │   └── candidates.json    # Candidate LLRs conforming to schema
+│           │   └── candidates.json    # Candidate LLRs
 │           └── test_scaffolding/
-│               ├── test_vectors.json  # DO-178C test vector specifications
-│               └── test_stubs.c       # Executable Unity C test harness stubs
-└── tests/                             # 20 automated unit and integration tests
+│               ├── test_vectors.json  # Test vector matrix
+│               └── test_stubs.c       # Unity C test harness
+└── tests/                             # 24 automated unit and integration tests
     ├── test_schemas.py
     ├── test_parsers.py
     ├── test_gap_auditor.py
     ├── test_llr_synthesizer.py
     ├── test_test_synthesizer.py
+    ├── test_airspeed_example.py
     └── test_cli.py
 ```
 
@@ -243,4 +259,4 @@ Execute the complete automated test suite with pytest:
 ```bash
 pytest -v tests/
 ```
-All 20 unit, schema, AST, auditing, and end-to-end CLI tests execute in under a second.
+All 24 unit, schema, AST, auditing, example case study, and end-to-end CLI tests execute cleanly.

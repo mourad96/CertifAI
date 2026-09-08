@@ -1,0 +1,25 @@
+[
+  {
+    "llr_id": "LLR-IAS-0001",
+    "parent_hlr_ref": "HLR-IAS-001",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "Transducer ready bit is asserted in AIRSPEED_STATUS_REG within 300 microseconds.",
+      "Input parameter 'sensor_id' is an integer between 0 and 1 inclusive.",
+      "Output pointer 'out_knots' is non-null."
+    ],
+    "statement": "The software shall sample the digitized dynamic pressure counts from AIRSPEED_DATA_REG, calculate indicated airspeed scaled to knots within the range 0.0 to 450.0 knots, and write the result into out_knots upon ready confirmation.",
+    "post_conditions": [
+      "Function returns AIRSPEED_OK upon successful read.",
+      "Function returns AIRSPEED_ERR_INVALID_PARAM if sensor_id is invalid or out_knots is null.",
+      "Function returns AIRSPEED_ERR_TIMEOUT if ready bit fails to assert before 300 microseconds.",
+      "Function returns AIRSPEED_ERR_SENSOR_FAULT if transducer fault bit is active."
+    ],
+    "boundary_definitions": {
+      "sensor_id": "0 to 1",
+      "out_knots": "0.0 to 450.0 knots"
+    },
+    "derived_requirement": false,
+    "rationale": "Implements primary airspeed acquisition allocated by HLR-IAS-001 under DO-178C DAL A requirements."
+  }
+]

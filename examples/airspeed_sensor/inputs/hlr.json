@@ -1,0 +1,12 @@
+[
+  {
+    "hlr_id": "HLR-IAS-001",
+    "description": "The flight software shall acquire indicated airspeed (IAS) from active pitot differential pressure channels within the calibrated flight operational envelope of 0.0 to 450.0 knots without exceeding sensor latency constraints.",
+    "safety_impact": "CAT",
+    "interfaces": [
+      "airspeed_read_knots",
+      "AIRSPEED_STATUS_REG",
+      "AIRSPEED_DATA_REG"
+    ]
+  }
+]

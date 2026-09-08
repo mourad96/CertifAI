@@ -1,0 +1,158 @@
+[
+  {
+    "llr_id": "LLR-AIR-0001",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [],
+    "statement": "The software shall validate that the input parameter `sensor_id` is within the valid range [0, AIRSPEED_MAX_SENSORS - 1].",
+    "post_conditions": [
+      "If `sensor_id` is outside the valid range, the software shall return `AIRSPEED_ERR_INVALID_PARAM` and the `out_knots` pointer shall not be dereferenced.",
+      "If `sensor_id` is valid, the software shall proceed with further validation and sensor operations."
+    ],
+    "boundary_definitions": {
+      "sensor_id": "0 to AIRSPEED_MAX_SENSORS - 1 (inclusive)"
+    },
+    "derived_requirement": true,
+    "rationale": "This requirement addresses the architectural omission of `sensor_id` validation. Failure to validate `sensor_id` could lead to out-of-bounds access, unpredictable behavior (e.g., using an invalid sensor channel's registers), or security vulnerabilities, which are critical safety concerns for DAL A systems. Robust input validation is mandated to ensure system integrity."
+  },
+  {
+    "llr_id": "LLR-AIR-0002",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "`sensor_id` has been validated as within its valid range."
+    ],
+    "statement": "The software shall validate that the output pointer `out_knots` is not a null pointer.",
+    "post_conditions": [
+      "If `out_knots` is a null pointer, the software shall return `AIRSPEED_ERR_INVALID_PARAM`.",
+      "If `out_knots` is a valid, non-null pointer, the software shall proceed with sensor data acquisition."
+    ],
+    "boundary_definitions": {
+      "out_knots": "Non-null memory address"
+    },
+    "derived_requirement": true,
+    "rationale": "This requirement addresses the architectural omission of `out_knots` null pointer validation. Dereferencing a null pointer can lead to memory access violations, system crashes, or unpredictable behavior, which is unacceptable for DAL A systems. This ensures a safe and valid destination for the calculated airspeed data."
+  },
+  {
+    "llr_id": "LLR-AIR-0003",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "`sensor_id` is valid and `out_knots` is not null."
+    ],
+    "statement": "The software shall poll the `AIRSPEED_STATUS_REG` for the `AIRSPEED_READY_BIT` within a defined and finite timeout period.",
+    "post_conditions": [
+      "If the `AIRSPEED_READY_BIT` is asserted within the timeout, the software shall proceed to check for sensor faults.",
+      "If the timeout expires before `AIRSPEED_READY_BIT` is asserted, the software shall return `AIRSPEED_ERR_TIMEOUT` and the value pointed to by `out_knots` shall remain unchanged."
+    ],
+    "boundary_definitions": {
+      "polling_timeout": "Implementation-defined, finite duration (e.g., <= 500 us), sufficient for expected sensor response time, but bounded to prevent system unresponsiveness."
+    },
+    "derived_requirement": true,
+    "rationale": "This requirement addresses the critical defect of unbounded busy-waiting identified in the source code. The parent HLR-IAS-001 specifies 'without exceeding sensor latency constraints'. An unbounded poll violates this by potentially leading to indefinite blocking, system unresponsiveness, or watchdog timeouts, which is unacceptable for DAL A. Introducing a timeout ensures deterministic behavior, recoverability from sensor unresponsiveness, and adherence to system latency constraints."
+  },
+  {
+    "llr_id": "LLR-AIR-0004",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "The `AIRSPEED_READY_BIT` has been asserted within the timeout period."
+    ],
+    "statement": "The software shall evaluate the `AIRSPEED_STATUS_REG` for the `AIRSPEED_FAULT_BIT` immediately after confirming sensor readiness.",
+    "post_conditions": [
+      "If the `AIRSPEED_FAULT_BIT` is asserted, the software shall return `AIRSPEED_ERR_SENSOR_FAULT` and the value pointed to by `out_knots` shall remain unchanged.",
+      "If the `AIRSPEED_FAULT_BIT` is not asserted, the software shall proceed to acquire raw sensor data."
+    ],
+    "boundary_definitions": {},
+    "derived_requirement": true,
+    "rationale": "This requirement addresses the omission of checking `AIRSPEED_FAULT_BIT`. Using data from a faulty sensor channel can lead to erroneous airspeed readings, which is a critical safety concern for flight control systems. DAL A mandates robust error detection and handling to prevent the use or propagation of invalid data and ensure overall system integrity. HLR-IAS-001 implies acquisition from 'active' and, by extension, functional pitot differential pressure channels."
+  },
+  {
+    "llr_id": "LLR-AIR-0005",
+    "parent_hlr_ref": "HLR-IAS-001",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "The sensor is ready and no fault has been detected."
+    ],
+    "statement": "The software shall acquire the raw differential pressure counts by reading the `AIRSPEED_DATA_REG`.",
+    "post_conditions": [
+      "The local variable `raw_counts` shall contain the latest raw data value obtained from the `AIRSPEED_DATA_REG`."
+    ],
+    "boundary_definitions": {
+      "AIRSPEED_DATA_REG": "Values representing differential pressure, typically unsigned and non-negative counts."
+    },
+    "derived_requirement": false,
+    "rationale": "This requirement directly implements the 'acquire indicated airspeed (IAS) from active pitot differential pressure channels' portion of HLR-IAS-001 by obtaining the raw sensor data."
+  },
+  {
+    "llr_id": "LLR-AIR-0006",
+    "parent_hlr_ref": "HLR-IAS-001",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "Raw differential pressure counts (`raw_counts`) have been successfully acquired."
+    ],
+    "statement": "The software shall convert the acquired `raw_counts` to indicated airspeed in knots by multiplying the `raw_counts` (cast to float) by a scaling factor of 0.1f.",
+    "post_conditions": [
+      "The memory location pointed to by `out_knots` shall contain the calculated indicated airspeed in knots."
+    ],
+    "boundary_definitions": {
+      "raw_counts": "0 to 4500 counts (corresponding to 0.0 to 450.0 knots, based on scaling)",
+      "scaling_factor": "0.1f",
+      "calculated_knots": "0.0 to 450.0 knots"
+    },
+    "derived_requirement": false,
+    "rationale": "This requirement directly implements the transformation logic necessary to obtain 'indicated airspeed (IAS)' in 'knots' from the raw sensor data, as specified by HLR-IAS-001."
+  },
+  {
+    "llr_id": "LLR-AIR-0007",
+    "parent_hlr_ref": "HLR-IAS-001",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "Airspeed in knots (`*out_knots`) has been calculated from `raw_counts`."
+    ],
+    "statement": "The software shall ensure that the calculated indicated airspeed `*out_knots` is within the operational envelope defined by `AIRSPEED_MIN_KNOTS` and `AIRSPEED_MAX_KNOTS`.",
+    "post_conditions": [
+      "The value stored in `*out_knots` shall be greater than or equal to `AIRSPEED_MIN_KNOTS` (0.0f) and less than or equal to `AIRSPEED_MAX_KNOTS` (450.0f)."
+    ],
+    "boundary_definitions": {
+      "calculated_knots_range": "AIRSPEED_MIN_KNOTS (0.0f) to AIRSPEED_MAX_KNOTS (450.0f)"
+    },
+    "derived_requirement": false,
+    "rationale": "This requirement ensures compliance with the 'within the calibrated flight operational envelope of 0.0 to 450.0 knots' part of HLR-IAS-001. If the acquired and converted value falls outside this specified range, it indicates that the acquisition process itself has yielded an invalid result relative to the HLR's defined envelope, which may necessitate further fault handling at a higher level."
+  },
+  {
+    "llr_id": "LLR-AIR-0008",
+    "parent_hlr_ref": "HLR-IAS-001",
+    "target_function": "airspeed_read_knots",
+    "pre_conditions": [
+      "All input validations passed.",
+      "Sensor is ready and not faulty.",
+      "Raw data acquired and converted successfully.",
+      "Calculated airspeed is within the operational envelope."
+    ],
+    "statement": "The software shall return `AIRSPEED_OK` upon successful acquisition and conversion of indicated airspeed that complies with all specified requirements.",
+    "post_conditions": [
+      "The function returns `AIRSPEED_OK`."
+    ],
+    "boundary_definitions": {},
+    "derived_requirement": false,
+    "rationale": "This requirement indicates the successful fulfillment of the primary objective defined by HLR-IAS-001, providing a clear pass criterion for the function's execution."
+  },
+  {
+    "llr_id": "LLR-AIR-0001",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "airspeed_celsius_to_kelvin",
+    "pre_conditions": [],
+    "statement": "The software shall convert a temperature value from Celsius to Kelvin.",
+    "post_conditions": [
+      "The returned floating-point value shall represent the input temperature in Celsius augmented by the constant 273.15.",
+      "The returned value shall be a single-precision floating-point number."
+    ],
+    "boundary_definitions": {
+      "temp_c": "-80.0 to +60.0 degrees Celsius (representative physical range)",
+      "return_value": "193.15 to 333.15 Kelvin (corresponding to temp_c range)"
+    },
+    "derived_requirement": true,
+    "rationale": "This function performs a fundamental physical unit conversion necessary for various aeronautical calculations, such as density altitude, true airspeed, or speed of sound, all of which require temperature to be expressed in Kelvin. Although no specific parent HLR is provided, the necessity for accurate environmental parameter processing and subsequent calculations in an avionics system implies the need for this conversion. Without this capability, downstream calculations dependent on absolute temperature would yield incorrect results, potentially impacting flight performance or navigation accuracy."
+  }
+]

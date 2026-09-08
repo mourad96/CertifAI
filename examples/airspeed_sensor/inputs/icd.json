@@ -1,0 +1,43 @@
+{
+  "device_name": "Pitot_Static_Airspeed_Transducer",
+  "architecture": "ARM_Cortex_M4",
+  "clock_freq_hz": 168000000,
+  "default_timeout_us": 300.0,
+  "registers": [
+    {
+      "name": "AIRSPEED_STATUS_REG",
+      "address": "0x40030000",
+      "description": "Pitot pressure transducer status and fault monitor",
+      "access": "RO",
+      "ready_mask": "0x00000001",
+      "error_mask": "0x00000002",
+      "reset_value": "0x00000001",
+      "timeout_us": 300.0,
+      "bitfields": {
+        "READY": {
+          "mask": "0x00000001",
+          "description": "Pressure measurement digitized and ready"
+        },
+        "FAULT": {
+          "mask": "0x00000002",
+          "description": "Transducer diaphragm jam or heater fault active"
+        }
+      }
+    },
+    {
+      "name": "AIRSPEED_DATA_REG",
+      "address": "0x40030004",
+      "description": "Digitized differential dynamic pressure data in 0.1 knot counts",
+      "access": "RO",
+      "reset_value": "0x00000000",
+      "timeout_us": 100.0
+    }
+  ],
+  "buses": [
+    {
+      "name": "Sensor_SPI_Bus",
+      "type": "SPI",
+      "max_frequency_hz": 10000000
+    }
+  ]
+}
