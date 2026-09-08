@@ -3,6 +3,7 @@
 [![DO-178C DAL A Compliant](https://img.shields.io/badge/DO--178C-DAL%20A%20Assisted-blue.svg)](#)
 [![Python 3.11](https://img.shields.io/badge/python-3.11+-brightgreen.svg)](#)
 [![Tests: 20 passed](https://img.shields.io/badge/tests-20%20passed-success.svg)](#)
+[![License](https://img.shields.io/badge/license-Proprietary-gray.svg)](#)
 
 The **Avionics Contract & Verification Synthesis Engine (ACV-SE)** is a verification-copilot designed to bridge the gap between benchtop exploratory prototype C code (the "spike phase") and formal **DO-178C DAL A** compliance artifacts.
 
@@ -69,7 +70,7 @@ The engine serves as an auditing and suggestion system that extracts formal cand
 
 ---
 
-## 2. Installation
+## 2. Installation & Quick Start
 
 ```bash
 # Clone the repository
@@ -85,11 +86,50 @@ pip install -e .
 * `tree-sitter` & `tree-sitter-c` for C AST parsing
 * `jsonschema` for DO-178C artifact schema validation
 * `jinja2` for C test harness code generation
+* `python-dotenv` for automatic environment variable loading
 * Optional LLM SDKs: `google-genai` (Gemini), `openai`, `anthropic`
 
 ---
 
-## 3. CLI Usage
+## 3. Environment & Configuration (`.env`)
+
+ACV-SE supports automated environment variable loading via `python-dotenv`. An [`.env.example`](file:///.env.example) template is provided in the repository root.
+
+### Setup Instructions
+
+1. Copy the example file to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Configure your keys and preferences in `.env`:
+   ```ini
+   # ==============================================================================
+   # CertifAI / ACV-SE Environment Variables
+   # ==============================================================================
+
+   # Google Gemini API Key (Required for Gemini synthesis)
+   # Obtain a key at: https://aistudio.google.com/app/apikey
+   GEMINI_API_KEY=your_actual_api_key_here
+   GOOGLE_API_KEY=your_actual_api_key_here
+
+   # Active LLM Provider: auto | gemini | openai | anthropic | offline
+   ACV_PROVIDER=gemini
+
+   # Model Selection (defaults to gemini-2.5-flash / Gemini 3.5 Flash)
+   ACV_MODEL=gemini-2.5-flash
+
+   # Optional Alternative Providers
+   OPENAI_API_KEY=
+   ANTHROPIC_API_KEY=
+   ```
+
+> [!IMPORTANT]
+> `.env` is listed in [`.gitignore`](file:///.gitignore) and is never committed to Git, ensuring your API credentials remain completely private.
+
+---
+
+## 4. CLI Usage
 
 The `acv` command-line interface provides three primary subcommands:
 
@@ -126,25 +166,29 @@ acv generate-tests \
 
 ---
 
-## 4. LLM Providers & Determinism Controls
+## 5. LLM Providers & Determinism Controls
 
-* **Default Provider:** Auto-detects available environment variables:
-  * `GEMINI_API_KEY` or `GOOGLE_API_KEY` (defaults to `gemini-2.5-flash` or user-specified model, e.g. Gemini 3.5 Flash)
-  * `OPENAI_API_KEY`
-  * `ANTHROPIC_API_KEY`
+* **Default Provider:** Automatically resolves active provider from `.env`:
+  * `gemini`: Uses `google.genai` / `google.generativeai` with `GEMINI_API_KEY`.
+  * `openai`: Uses `openai` with `OPENAI_API_KEY`.
+  * `anthropic`: Uses `anthropic` with `ANTHROPIC_API_KEY`.
 * **Temperature:** Preserves model default temperature.
-* **Air-Gapped / Offline Fallback:** When running in offline or test environments with no API keys, ACV-SE uses its deterministic rule-based synthesis and auditing engine.
-* Force provider via CLI flag: `--provider offline` or `--provider gemini`.
+* **Air-Gapped / Offline Fallback:** When running in offline or test environments with no API keys (or `--provider offline`), ACV-SE uses its deterministic rule-based synthesis and auditing engine.
+* **CLI Overrides:** Override provider and model on any command via `--provider <name>` and `--model <name>`.
 
 ---
 
-## 5. Project Layout
+## 6. Project Layout & Git Structure
 
 ```
 certifAI/
+├── .env.example                       # Example environment variables template
+├── .gitignore                         # Securely ignores .env, bytecode, test caches
+├── pyproject.toml                     # Package definition & 'acv' console script
+├── README.md                          # Engineering & certification documentation
 ├── acv_engine/
 │   ├── cli.py                         # CLI entrypoint ('acv' command)
-│   ├── config.py                      # Global settings, provider configuration
+│   ├── config.py                      # Global settings, dotenv loader, provider config
 │   ├── schemas/
 │   │   ├── validator.py               # JSONSchema validation utilities
 │   │   ├── hlr_schema.json            # High-Level Requirements schema
@@ -173,21 +217,21 @@ certifAI/
 │       ├── hlr.json                   # Allocated HLRs
 │       ├── icd.json                   # Hardware register & bus ICD
 │       └── approved_llr.json          # Baselined LLRs for test generation
-├── tests/                             # Comprehensive automated test suite
-│   ├── test_schemas.py
-│   ├── test_parsers.py
-│   ├── test_gap_auditor.py
-│   ├── test_llr_synthesizer.py
-│   ├── test_test_synthesizer.py
-│   └── test_cli.py
-└── pyproject.toml
+└── tests/                             # 20 automated unit and integration tests
+    ├── test_schemas.py
+    ├── test_parsers.py
+    ├── test_gap_auditor.py
+    ├── test_llr_synthesizer.py
+    ├── test_test_synthesizer.py
+    └── test_cli.py
 ```
 
 ---
 
-## 6. Running Tests
+## 7. Running Automated Tests
 
-Run the full automated test suite with pytest:
+Execute the complete automated test suite with pytest:
 ```bash
 pytest -v tests/
 ```
+All 20 unit, schema, AST, auditing, and end-to-end CLI tests execute in under a second.
