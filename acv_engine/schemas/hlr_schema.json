@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HighLevelRequirementList",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "hlr_id": {
+        "type": "string",
+        "pattern": "^HLR-[A-Z0-9]+-[0-9]{3}$"
+      },
+      "description": {
+        "type": "string"
+      },
+      "safety_impact": {
+        "type": "string",
+        "enum": ["CAT", "HAZ", "MAJ", "MIN", "NO_SAFETY"]
+      },
+      "interfaces": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["hlr_id", "description", "safety_impact"]
+  }
+}

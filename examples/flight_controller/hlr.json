@@ -1,0 +1,21 @@
+[
+  {
+    "hlr_id": "HLR-ACT-001",
+    "description": "The flight software shall command actuator position on selected servo channels within the valid aerodynamic authority range of -45.0 to +45.0 degrees without exceeding hardware latency limits.",
+    "safety_impact": "CAT",
+    "interfaces": [
+      "actuator_set_position",
+      "ACT_CTRL_REG",
+      "ACT_POS_REG"
+    ]
+  },
+  {
+    "hlr_id": "HLR-ACT-002",
+    "description": "The flight software shall command actuator operational mode transitions between STANDBY, ACTIVE, and CALIBRATE states according to flight control computer executive states.",
+    "safety_impact": "MAJ",
+    "interfaces": [
+      "actuator_switch_mode",
+      "ACT_CTRL_REG"
+    ]
+  }
+]

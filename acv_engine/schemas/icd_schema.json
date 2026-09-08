@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HardwareInterfaceControlDocument",
+  "type": "object",
+  "properties": {
+    "device_name": {
+      "type": "string"
+    },
+    "architecture": {
+      "type": "string"
+    },
+    "clock_freq_hz": {
+      "type": "number"
+    },
+    "default_timeout_us": {
+      "type": "number"
+    },
+    "registers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "type": ["string", "number"] },
+          "description": { "type": "string" },
+          "access": { "type": "string", "enum": ["RO", "WO", "RW", "R/W"] },
+          "ready_mask": { "type": ["string", "number"] },
+          "error_mask": { "type": ["string", "number"] },
+          "reset_value": { "type": ["string", "number"] },
+          "timeout_us": { "type": "number" },
+          "bitfields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "mask": { "type": ["string", "number"] },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": ["name"]
+      }
+    },
+    "buses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "max_frequency_hz": { "type": "number" }
+        },
+        "required": ["name"]
+      }
+    }
+  },
+  "required": ["device_name", "registers"]
+}

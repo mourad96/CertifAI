@@ -1,0 +1,59 @@
+[
+  {
+    "llr_id": "LLR-ACT-0001",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "Input parameter 'channel' shall be valid and within architectural range.",
+      "Input parameter 'target_angle_deg' shall be valid and within architectural range."
+    ],
+    "statement": "The software shall execute actuator set position to satisfy HLR-ACT-001 by processing input values within defined operating tolerances and outputting contractual state updates without unbounded delay.",
+    "post_conditions": [
+      "Function shall return status code or evaluated value conforming to act_status_t."
+    ],
+    "boundary_definitions": {
+      "channel": "0 to 7",
+      "target_angle_deg": "-45.0 to +45.0 deg"
+    },
+    "derived_requirement": false,
+    "rationale": "Directly traces to parent requirement HLR-ACT-001 (CAT safety category) for verified function actuator_set_position."
+  },
+  {
+    "llr_id": "LLR-ACT-0002",
+    "parent_hlr_ref": "DERIVED",
+    "target_function": "actuator_apply_rate_filter",
+    "pre_conditions": [
+      "Input parameter 'current_val' shall be valid and within architectural range.",
+      "Input parameter 'target_val' shall be valid and within architectural range.",
+      "Input parameter 'max_rate' shall be valid and within architectural range."
+    ],
+    "statement": "The software shall provide internal defensive utility actuator_apply_rate_filter to support subsystem execution while strictly bounding resource usage.",
+    "post_conditions": [
+      "Function shall return status code or evaluated value conforming to float."
+    ],
+    "boundary_definitions": {
+      "current_val": "Valid range for type float",
+      "target_val": "Valid range for type float",
+      "max_rate": "-100.0 to +100.0 deg/s"
+    },
+    "derived_requirement": true,
+    "rationale": "CANDIDATE_DERIVED_REQUIREMENT: Function 'actuator_apply_rate_filter' has no allocated parent HLR. Classified as derived functionality requiring systems engineer review and safety validation."
+  },
+  {
+    "llr_id": "LLR-ACT-0003",
+    "parent_hlr_ref": "HLR-ACT-002",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [
+      "Input parameter 'mode' shall be valid and within architectural range."
+    ],
+    "statement": "The software shall execute actuator switch mode to satisfy HLR-ACT-002 by processing input values within defined operating tolerances and outputting contractual state updates without unbounded delay.",
+    "post_conditions": [
+      "Function shall return status code or evaluated value conforming to act_status_t."
+    ],
+    "boundary_definitions": {
+      "mode": "Valid range for type act_mode_t"
+    },
+    "derived_requirement": false,
+    "rationale": "Directly traces to parent requirement HLR-ACT-002 (MAJ safety category) for verified function actuator_switch_mode."
+  }
+]

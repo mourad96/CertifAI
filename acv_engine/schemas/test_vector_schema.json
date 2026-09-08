@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestSpecificationList",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "test_case_id": {
+        "type": "string",
+        "pattern": "^TC-[A-Z0-9]+-[0-9]{4}$"
+      },
+      "traces_to_llr": {
+        "type": "string"
+      },
+      "test_category": {
+        "type": "string",
+        "enum": ["NOMINAL", "BOUNDARY", "ROBUSTNESS"]
+      },
+      "description": {
+        "type": "string"
+      },
+      "inputs": {
+        "type": "object"
+      },
+      "expected_outputs": {
+        "type": "object"
+      },
+      "fault_injection": {
+        "type": ["string", "null"]
+      }
+    },
+    "required": [
+      "test_case_id",
+      "traces_to_llr",
+      "test_category",
+      "inputs",
+      "expected_outputs"
+    ]
+  }
+}

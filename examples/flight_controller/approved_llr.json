@@ -1,0 +1,42 @@
+[
+  {
+    "llr_id": "LLR-ACT-0001",
+    "parent_hlr_ref": "HLR-ACT-001",
+    "target_function": "actuator_set_position",
+    "pre_conditions": [
+      "Actuator hardware ready bit is asserted in ACT_STATUS_REG within 500 microseconds.",
+      "Input parameter 'channel' is an integer between 0 and 3 inclusive.",
+      "Input parameter 'target_angle_deg' is within -45.0 to +45.0 degrees."
+    ],
+    "statement": "The software shall set the actuator position register ACT_POS_REG to the commanded angle scaled to millidegrees and assert the trigger bit on ACT_CTRL_REG for the specified channel within 100 microseconds of ready confirmation.",
+    "post_conditions": [
+      "Function returns ACT_OK upon successful register transaction.",
+      "Function returns ACT_ERR_INVALID_PARAM if channel or angle is outside defined boundaries.",
+      "Function returns ACT_ERR_TIMEOUT if ready bit fails to assert before 500 microseconds."
+    ],
+    "boundary_definitions": {
+      "channel": "0 to 3",
+      "target_angle_deg": "-45.0 to 45.0"
+    },
+    "derived_requirement": false,
+    "rationale": "Implements primary surface positioning commanded by HLR-ACT-001 under DO-178C DAL A requirements."
+  },
+  {
+    "llr_id": "LLR-ACT-0002",
+    "parent_hlr_ref": "HLR-ACT-002",
+    "target_function": "actuator_switch_mode",
+    "pre_conditions": [
+      "Flight surface controller executive is initialized in valid operating cycle."
+    ],
+    "statement": "The software shall transition ACT_CTRL_REG into STANDBY (0x00), ACTIVE (0x01), or CALIBRATE (0x04) according to commanded mode enum, returning ACT_ERR_INVALID_PARAM if an undefined mode is received.",
+    "post_conditions": [
+      "ACT_CTRL_REG reflects commanded mode state bitmask.",
+      "Function returns ACT_OK for recognized mode transitions."
+    ],
+    "boundary_definitions": {
+      "mode": "0 to 2"
+    },
+    "derived_requirement": false,
+    "rationale": "Implements mode executive state machine per HLR-ACT-002."
+  }
+]

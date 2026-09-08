@@ -1,0 +1,61 @@
+{
+  "device_name": "FlightSurface_Actuator_Controller",
+  "architecture": "ARM_Cortex_M4",
+  "clock_freq_hz": 168000000,
+  "default_timeout_us": 500.0,
+  "registers": [
+    {
+      "name": "ACT_CTRL_REG",
+      "address": "0x40021000",
+      "description": "Actuator control register for channel enabling and triggering",
+      "access": "RW",
+      "reset_value": "0x00000000",
+      "timeout_us": 100.0,
+      "bitfields": {
+        "TRIGGER": {
+          "mask": "0x00000001",
+          "description": "Start position motion command"
+        },
+        "CHANNEL_MASK": {
+          "mask": "0x000000F0",
+          "description": "Selected actuator channel bitfield"
+        }
+      }
+    },
+    {
+      "name": "ACT_STATUS_REG",
+      "address": "0x40021004",
+      "description": "Actuator status and fault monitoring register",
+      "access": "RO",
+      "ready_mask": "0x00000001",
+      "error_mask": "0x00000002",
+      "reset_value": "0x00000001",
+      "timeout_us": 500.0,
+      "bitfields": {
+        "READY": {
+          "mask": "0x00000001",
+          "description": "Actuator hardware ready for next command"
+        },
+        "FAULT": {
+          "mask": "0x00000002",
+          "description": "Hardware overcurrent, jam, or power fault active"
+        }
+      }
+    },
+    {
+      "name": "ACT_POS_REG",
+      "address": "0x40021008",
+      "description": "Actuator target position register in millidegree fixed-point format",
+      "access": "RW",
+      "reset_value": "0x00000000",
+      "timeout_us": 100.0
+    }
+  ],
+  "buses": [
+    {
+      "name": "Internal_AHB_Bus",
+      "type": "AHB-Lite",
+      "max_frequency_hz": 84000000
+    }
+  ]
+}

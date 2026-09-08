@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CandidateLLRList",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "llr_id": {
+        "type": "string",
+        "pattern": "^LLR-[A-Z0-9]+-[0-9]{4}$"
+      },
+      "parent_hlr_ref": {
+        "type": "string"
+      },
+      "target_function": {
+        "type": "string"
+      },
+      "pre_conditions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "statement": {
+        "type": "string",
+        "description": "Shall statement specifying functional behavior"
+      },
+      "post_conditions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "boundary_definitions": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "derived_requirement": {
+        "type": "boolean"
+      },
+      "rationale": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "llr_id",
+      "parent_hlr_ref",
+      "target_function",
+      "statement",
+      "derived_requirement"
+    ]
+  }
+}

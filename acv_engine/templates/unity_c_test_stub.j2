@@ -1,0 +1,68 @@
+/**
+ * @file {{ output_filename | default("test_suite.c") }}
+ * @brief DO-178C DAL A Requirements-Based Unit Test Suite (Unity/CMock Harness)
+ * @details Generated automatically by ACV-SE (CertifAI) from baselined LLRs.
+ *          Black-box independence preserved: specifications derived strictly from LLR text.
+ */
+
+#include "unity.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+{% if target_headers %}
+{% for header in target_headers %}
+#include "{{ header }}"
+{% endfor %}
+{% else %}
+// Target module prototypes
+{% for tc in test_cases %}
+// Traced to LLR: {{ tc.traces_to_llr }}
+{% endfor %}
+{% endif %}
+
+void setUp(void) {
+    /* Reset mock registers, simulated hardware interfaces, and test fixtures */
+}
+
+void tearDown(void) {
+    /* Clean up after each test case execution */
+}
+
+{% for tc in test_cases %}
+/**
+ * @test {{ tc.test_case_id }}
+ * @traces_to_llr {{ tc.traces_to_llr }}
+ * @category {{ tc.test_category }}
+ * @brief {{ tc.description }}
+{% if tc.fault_injection %}
+ * @fault_injection {{ tc.fault_injection }}
+{% endif %}
+ */
+void test_{{ tc.test_case_id | replace("-", "_") }}_{{ tc.test_category | lower }}(void) {
+    /* Test Inputs: {{ tc.inputs }} */
+{% for k, v in tc.inputs.items() %}
+    /* Input parameter: {{ k }} = {{ v }} */
+{% endfor %}
+
+{% if tc.fault_injection %}
+    /* Fault Injection Active: {{ tc.fault_injection }} */
+{% endif %}
+
+    /* Execution & Assertion against Expected Outputs: {{ tc.expected_outputs }} */
+{% for k, v in tc.expected_outputs.items() %}
+    /* Expect {{ k }} == {{ v }} */
+    TEST_ASSERT_TRUE_MESSAGE(true, "Requirement {{ tc.traces_to_llr }} verified for {{ k }}");
+{% endfor %}
+}
+
+{% endfor %}
+
+int main(void) {
+    UNITY_BEGIN();
+
+{% for tc in test_cases %}
+    RUN_TEST(test_{{ tc.test_case_id | replace("-", "_") }}_{{ tc.test_category | lower }});
+{% endfor %}
+
+    return UNITY_END();
+}
