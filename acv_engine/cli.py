@@ -89,6 +89,10 @@ def create_parser() -> argparse.ArgumentParser:
         "--vectors", default=None, type=str, help="Optional output path to save raw test vectors JSON"
     )
     test_cmd.add_argument(
+        "--matrix", default=None, type=str,
+        help="Optional output path for human-readable Markdown test vector & MC/DC table (default: companion .md next to --vectors)"
+    )
+    test_cmd.add_argument(
         "--target-header", default=None, action="append", help="Header file to include in generated C test stub"
     )
     test_cmd.add_argument(
@@ -192,6 +196,11 @@ def run_generate_tests(args: argparse.Namespace) -> int:
     llr_path = Path(args.llr)
     out_path = Path(args.out)
     vectors_path = Path(args.vectors) if args.vectors else None
+    matrix_path = Path(args.matrix) if getattr(args, "matrix", None) else None
+
+    # If --matrix not explicitly provided, but --vectors is given, auto-generate companion .md
+    if not matrix_path and vectors_path:
+        matrix_path = vectors_path.with_suffix(".md")
 
     if not llr_path.exists():
         print(f"Error: LLR path does not exist: {llr_path}", file=sys.stderr)
@@ -211,7 +220,26 @@ def run_generate_tests(args: argparse.Namespace) -> int:
 
     # Optionally write raw test vectors JSON
     if vectors_path:
+        vectors_path.parent.mkdir(parents=True, exist_ok=True)
         vectors_path.write_text(json.dumps(test_cases, indent=2), encoding="utf-8")
+
+    # Load baselined LLRs for MC/DC analysis if readable
+    llr_list = None
+    try:
+        raw_llr = json.loads(llr_path.read_text(encoding="utf-8"))
+        llr_list = raw_llr.get("items", raw_llr) if isinstance(raw_llr, dict) else raw_llr
+    except Exception:
+        pass
+
+    # Render and write human-readable Markdown test matrix & MC/DC table
+    if matrix_path:
+        matrix_path.parent.mkdir(parents=True, exist_ok=True)
+        matrix_md = synthesizer.generate_markdown_matrix(
+            test_cases=test_cases,
+            llr_list=llr_list,
+            module_prefix=args.prefix,
+        )
+        matrix_path.write_text(matrix_md, encoding="utf-8")
 
     # Render C Unity test stubs
     c_stubs = synthesizer.render_c_test_stub(
@@ -219,6 +247,7 @@ def run_generate_tests(args: argparse.Namespace) -> int:
         output_filename=out_path.name,
         target_headers=args.target_header or [],
     )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(c_stubs, encoding="utf-8")
 
     nom_count = sum(1 for t in test_cases if t["test_category"] == "NOMINAL")
@@ -231,6 +260,8 @@ def run_generate_tests(args: argparse.Namespace) -> int:
     print(f"  C Test Harness Stub: {out_path}")
     if vectors_path:
         print(f"  Test Vectors JSON: {vectors_path}")
+    if matrix_path:
+        print(f"  Test Matrix (MC/DC Table): {matrix_path}")
     return 0
 
 

@@ -74,6 +74,12 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(ret, 0)
         self.assertTrue(Path(out_c).exists())
         self.assertTrue(Path(out_vectors).exists())
+        # Verify companion Markdown table was automatically created alongside .json
+        out_matrix = self.temp_path / "vectors.md"
+        self.assertTrue(out_matrix.exists())
+        matrix_text = out_matrix.read_text(encoding="utf-8")
+        self.assertIn("# DO-178C DAL A Requirements-Based Test Matrix & MC/DC Analysis", matrix_text)
+        self.assertIn("MC/DC", matrix_text)
 
         vectors = json.loads(Path(out_vectors).read_text(encoding="utf-8"))
         validate_test_vectors(vectors)
@@ -81,6 +87,25 @@ class TestCLI(unittest.TestCase):
         c_text = Path(out_c).read_text(encoding="utf-8")
         self.assertIn("RUN_TEST", c_text)
         self.assertIn("UNITY_BEGIN", c_text)
+
+    def test_cli_generate_tests_explicit_matrix(self):
+        llr_file = str(self.examples_dir / "approved_llr.json")
+        out_c = str(self.temp_path / "test_stubs2.c")
+        out_matrix = str(self.temp_path / "custom_matrix.md")
+
+        ret = main([
+            "generate-tests",
+            "--llr", llr_file,
+            "--out", out_c,
+            "--matrix", out_matrix,
+            "--prefix", "ACT",
+            "--provider", "offline",
+        ])
+        self.assertEqual(ret, 0)
+        self.assertTrue(Path(out_c).exists())
+        self.assertTrue(Path(out_matrix).exists())
+        matrix_text = Path(out_matrix).read_text(encoding="utf-8")
+        self.assertIn("# DO-178C DAL A Requirements-Based Test Matrix & MC/DC Analysis", matrix_text)
 
 
 if __name__ == "__main__":

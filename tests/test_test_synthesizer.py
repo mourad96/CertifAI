@@ -47,6 +47,21 @@ class TestTestSynthesizer(unittest.TestCase):
         self.assertIn("UNITY_END()", c_code)
         self.assertIn("RUN_TEST(", c_code)
 
+    def test_render_markdown_matrix(self):
+        test_cases = self.synthesizer.synthesize_from_file(self.llr_file, module_prefix="ACT")
+        md_matrix = self.synthesizer.generate_markdown_matrix(
+            test_cases=test_cases, module_prefix="ACT"
+        )
+
+        self.assertIn("# DO-178C DAL A Requirements-Based Test Matrix & MC/DC Analysis", md_matrix)
+        self.assertIn("Executive Test Partition Summary", md_matrix)
+        self.assertIn("NOMINAL", md_matrix)
+        self.assertIn("BOUNDARY", md_matrix)
+        self.assertIn("ROBUSTNESS", md_matrix)
+        self.assertIn("Modified Condition / Decision Coverage (MC/DC) Analysis", md_matrix)
+        self.assertIn("Comprehensive Test Vector Specifications", md_matrix)
+        self.assertIn("|", md_matrix)  # Markdown table format check
+
 
 if __name__ == "__main__":
     unittest.main()
